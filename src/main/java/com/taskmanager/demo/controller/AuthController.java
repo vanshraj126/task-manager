@@ -15,6 +15,7 @@ public class AuthController {
 
     @PostMapping("/register")
     public User register(@RequestBody User user){
+        System.out.println("Register endpoint hit!");
         return userService.registerUser(user);
     }
 
@@ -24,4 +25,5 @@ public class AuthController {
         return userService.login(email, password);
 
     }
+    
 }

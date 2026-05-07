@@ -3,35 +3,137 @@
 <head>
     <meta charset="UTF-8">
     <title>Task Manager</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: Arial, sans-serif; }
+        body { background: #f0f2f5; display: flex; justify-content: center; padding: 30px; }
+        .container { width: 100%; max-width: 600px; }
+        h2 { margin-bottom: 20px; color: #333; }
+        h3 { margin: 20px 0 10px; color: #444; }
+        input, select { width: 100%; padding: 10px; margin-bottom: 10px; border: 1px solid #ddd; border-radius: 6px; font-size: 14px; }
+        button { width: 100%; padding: 10px; background: #4f46e5; color: white; border: none; border-radius: 6px; cursor: pointer; font-size: 14px; margin-bottom: 10px; }
+        button:hover { background: #4338ca; }
+        .card { background: white; padding: 20px; border-radius: 10px; margin-bottom: 20px; box-shadow: 0 1px 4px rgba(0,0,0,0.1); }
+        .item { padding: 10px; border-bottom: 1px solid #f0f0f0; font-size: 14px; color: #333; }
+        .item:last-child { border-bottom: none; }
+        .tag { display: inline-block; padding: 2px 8px; border-radius: 10px; font-size: 12px; margin-left: 8px; }
+        .TODO { background: #fef3c7; color: #92400e; }
+        .IN_PROGRESS { background: #dbeafe; color: #1e40af; }
+        .DONE { background: #d1fae5; color: #065f46; }
+        .link { color: #4f46e5; cursor: pointer; font-size: 14px; text-align: center; margin-top: 5px; }
+        .logout { background: #ef4444; }
+        .logout:hover { background: #dc2626; }
+        .secondary { background: white; color: #4f46e5; border: 1px solid #4f46e5; }
+        .secondary:hover { background: #f5f3ff; }
+        .error { color: red; font-size: 13px; margin-bottom: 10px; }
+        .success { color: green; font-size: 13px; margin-bottom: 10px; }
+    </style>
 </head>
 <body>
+<div class="container">
 
-<!-- LOGIN SECTION -->
-<div id="loginSection">
-    <h2>Login</h2>
-    <input type="email" id="email" placeholder="Email" />
-    <input type="password" id="password" placeholder="Password" />
-    <button onclick="login()">Login</button>
-</div>
+    <!-- LOGIN -->
+    <div id="loginSection" class="card">
+        <h2>🔐 Login</h2>
+        <div id="loginError" class="error"></div>
+        <input type="email" id="loginEmail" placeholder="Email" />
+        <input type="password" id="loginPassword" placeholder="Password" />
+        <button onclick="login()">Login</button>
+        <p class="link" onclick="showRegister()">Don't have an account? Register</p>
+    </div>
 
-<!-- DASHBOARD SECTION -->
-<div id="dashboardSection" style="display:none;">
-    <h2>Dashboard</h2>
-    <button onclick="logout()">Logout</button>
+    <!-- REGISTER -->
+    <div id="registerSection" class="card" style="display:none;">
+        <h2>📝 Register</h2>
+        <div id="registerError" class="error"></div>
+        <div id="registerSuccess" class="success"></div>
+        <input type="text" id="regName" placeholder="Full Name" />
+        <input type="email" id="regEmail" placeholder="Email" />
+        <input type="password" id="regPassword" placeholder="Password" />
+        <select id="regRole">
+            <option value="ADMIN">Admin</option>
+            <option value="MEMBER">Member</option>
+        </select>
+        <button onclick="register()">Register</button>
+        <p class="link" onclick="showLogin()">Already have an account? Login</p>
+    </div>
 
-    <h3>Projects</h3>
-    <div id="projectsList"></div>
+    <!-- DASHBOARD -->
+    <div id="dashboardSection" style="display:none;">
 
-    <h3>Tasks</h3>
-    <div id="tasksList"></div>
+        <div class="card">
+            <h2>📋 Task Manager</h2>
+            <button class="logout" onclick="logout()">Logout</button>
+        </div>
+
+        <!-- CREATE PROJECT -->
+        <div class="card">
+            <h3>➕ Create Project</h3>
+            <input type="text" id="projectName" placeholder="Project Name" />
+            <button onclick="createProject()">Create Project</button>
+        </div>
+
+        <!-- CREATE TASK -->
+        <div class="card">
+            <h3>➕ Create Task</h3>
+            <input type="text" id="taskTitle" placeholder="Task Title" />
+            <input type="text" id="taskDesc" placeholder="Description" />
+            <input type="number" id="taskProject" placeholder="Project ID" />
+            <button onclick="createTask()">Create Task</button>
+        </div>
+
+        <!-- PROJECTS LIST -->
+        <div class="card">
+            <h3>📁 Projects</h3>
+            <div id="projectsList"><p class="item">Loading...</p></div>
+        </div>
+
+        <!-- TASKS LIST -->
+        <div class="card">
+            <h3>✅ Tasks</h3>
+            <div id="tasksList"><p class="item">Loading...</p></div>
+        </div>
+
+    </div>
 </div>
 
 <script>
     const BASE_URL = "https://task-manager-production-fade.up.railway.app";
 
+    function showRegister() {
+        document.getElementById("loginSection").style.display = "none";
+        document.getElementById("registerSection").style.display = "block";
+    }
+
+    function showLogin() {
+        document.getElementById("registerSection").style.display = "none";
+        document.getElementById("loginSection").style.display = "block";
+    }
+
+    function register() {
+        const name = document.getElementById("regName").value;
+        const email = document.getElementById("regEmail").value;
+        const password = document.getElementById("regPassword").value;
+        const role = document.getElementById("regRole").value;
+
+        fetch(`${BASE_URL}/api/auth/register`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ name, email, password, role })
+        })
+        .then(res => res.json())
+        .then(data => {
+            document.getElementById("registerSuccess").innerText = "Registered! Please login.";
+            document.getElementById("registerError").innerText = "";
+            setTimeout(showLogin, 1500);
+        })
+        .catch(err => {
+            document.getElementById("registerError").innerText = "Registration failed!";
+        });
+    }
+
     function login() {
-        const email = document.getElementById("email").value;
-        const password = document.getElementById("password").value;
+        const email = document.getElementById("loginEmail").value;
+        const password = document.getElementById("loginPassword").value;
 
         fetch(`${BASE_URL}/api/auth/login?email=${email}&password=${password}`, {
             method: "POST"
@@ -41,50 +143,106 @@
             localStorage.setItem("token", token);
             showDashboard();
         })
-        .catch(err => alert("Login failed!"));
+        .catch(err => {
+            document.getElementById("loginError").innerText = "Invalid email or password!";
+        });
     }
 
-    // show dashboard after login
-function showDashboard() {
-    document.getElementById("loginSection").style.display = "none";
-    document.getElementById("dashboardSection").style.display = "block";
-    loadProjects();
-    loadTasks();
-}
+    function showDashboard() {
+        document.getElementById("loginSection").style.display = "none";
+        document.getElementById("registerSection").style.display = "none";
+        document.getElementById("dashboardSection").style.display = "block";
+        loadProjects();
+        loadTasks();
+    }
 
-// load all projects
-function loadProjects() {
-    const token = localStorage.getItem("token");
-    fetch(`${BASE_URL}/api/projects`, {
-        headers: { "Authorization": "Bearer " + token }
-    })
-    .then(res => res.json())
-    .then(projects => {
-        const list = document.getElementById("projectsList");
-        list.innerHTML = projects.map(p => `<p>📁 ${p.name}</p>`).join("");
-    });
-}
+    function logout() {
+        localStorage.removeItem("token");
+        document.getElementById("dashboardSection").style.display = "none";
+        document.getElementById("loginSection").style.display = "block";
+    }
 
-// load all tasks
-function loadTasks() {
-    const token = localStorage.getItem("token");
-    fetch(`${BASE_URL}/api/tasks`, {
-        headers: { "Authorization": "Bearer " + token }
-    })
-    .then(res => res.json())
-    .then(tasks => {
-        const list = document.getElementById("tasksList");
-        list.innerHTML = tasks.map(t => `<p>✅ ${t.title} — ${t.status}</p>`).join("");
-    });
-}
+    function getToken() {
+        return localStorage.getItem("token");
+    }
 
-// logout
-function logout() {
-    localStorage.removeItem("token");
-    document.getElementById("loginSection").style.display = "block";
-    document.getElementById("dashboardSection").style.display = "none";
-}
+    function loadProjects() {
+        fetch(`${BASE_URL}/api/projects`, {
+            headers: { "Authorization": "Bearer " + getToken() }
+        })
+        .then(res => res.json())
+        .then(projects => {
+            const list = document.getElementById("projectsList");
+            if (projects.length === 0) {
+                list.innerHTML = "<p class='item'>No projects yet.</p>";
+                return;
+            }
+            list.innerHTML = projects.map(p =>
+                `<div class='item'>📁 <strong>${p.name}</strong> (ID: ${p.id})</div>`
+            ).join("");
+        });
+    }
+
+    function loadTasks() {
+        fetch(`${BASE_URL}/api/tasks`, {
+            headers: { "Authorization": "Bearer " + getToken() }
+        })
+        .then(res => res.json())
+        .then(tasks => {
+            const list = document.getElementById("tasksList");
+            if (tasks.length === 0) {
+                list.innerHTML = "<p class='item'>No tasks yet.</p>";
+                return;
+            }
+            list.innerHTML = tasks.map(t =>
+                `<div class='item'>📌 <strong>${t.title}</strong> — ${t.description} <span class='tag ${t.status}'>${t.status}</span></div>`
+            ).join("");
+        });
+    }
+
+    function createProject() {
+        const name = document.getElementById("projectName").value;
+        fetch(`${BASE_URL}/api/projects`, {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+                "Authorization": "Bearer " + getToken()
+            },
+            body: JSON.stringify({ name, createdBy: 1 })
+        })
+        .then(res => res.json())
+        .then(() => {
+            document.getElementById("projectName").value = "";
+            loadProjects();
+        });
+    }
+
+    function createTask() {
+        const title = document.getElementById("taskTitle").value;
+        const description = document.getElementById("taskDesc").value;
+        const projectId = document.getElementById("taskProject").value;
+
+        fetch(`${BASE_URL}/api/tasks`, {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+                "Authorization": "Bearer " + getToken()
+            },
+            body: JSON.stringify({ title, description, projectId, assignedTo: 1 })
+        })
+        .then(res => res.json())
+        .then(() => {
+            document.getElementById("taskTitle").value = "";
+            document.getElementById("taskDesc").value = "";
+            document.getElementById("taskProject").value = "";
+            loadTasks();
+        });
+    }
+
+    // Auto login if token exists
+    window.onload = function() {
+        if (getToken()) showDashboard();
+    }
 </script>
-
 </body>
 </html>

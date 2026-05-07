@@ -24,10 +24,10 @@ public class SecurityConfig {
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/", "/index.html", "/*.html", "/*.css", "/*.js").permitAll()
                         .requestMatchers("/api/auth/**").permitAll()
-                        .requestMatchers(HttpMethod.DELETE, "/api/projects/**").hasRole("ADMIN")
-                        .requestMatchers(HttpMethod.POST, "/api/projects/**").hasRole("ADMIN")
-                        .requestMatchers(HttpMethod.POST, "/api/tasks/**").hasRole("ADMIN")
-                        .requestMatchers("/api/users/**").hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.DELETE, "/api/projects/**").hasAuthority("ADMIN")
+                        .requestMatchers(HttpMethod.POST, "/api/projects/**").hasAuthority("ADMIN")
+                        .requestMatchers(HttpMethod.POST, "/api/tasks/**").hasAuthority("ADMIN")
+                        .requestMatchers("/api/users/**").hasAuthority("ADMIN")
                         .anyRequest().authenticated()
                 );
         http.addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class);

@@ -22,6 +22,7 @@ public class SecurityConfig {
         http
                 .csrf(csrf -> csrf.disable())
                 .authorizeHttpRequests(auth -> auth
+                        .requestMatchers("/", "/index.html", "/*.html", "/*.css", "/*.js").permitAll()
                         .requestMatchers("/api/auth/**").permitAll()
                         .requestMatchers(HttpMethod.DELETE, "/api/projects/**").hasRole("ADMIN")
                         .requestMatchers(HttpMethod.POST, "/api/projects/**").hasRole("ADMIN")

@@ -1,4 +1,4 @@
-# Team Task Manager
+# Task Manager
 
 A full-stack REST API for managing projects, tasks, and teams with role-based access control.
 

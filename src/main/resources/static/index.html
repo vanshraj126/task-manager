@@ -14,6 +14,18 @@
     <button onclick="login()">Login</button>
 </div>
 
+<!-- DASHBOARD SECTION -->
+<div id="dashboardSection" style="display:none;">
+    <h2>Dashboard</h2>
+    <button onclick="logout()">Logout</button>
+
+    <h3>Projects</h3>
+    <div id="projectsList"></div>
+
+    <h3>Tasks</h3>
+    <div id="tasksList"></div>
+</div>
+
 <script>
     const BASE_URL = "https://task-manager-production-fade.up.railway.app";
 
@@ -27,10 +39,51 @@
         .then(res => res.text())
         .then(token => {
             localStorage.setItem("token", token);
-            alert("Login successful!");
+            showDashboard();
         })
         .catch(err => alert("Login failed!"));
     }
+
+    // show dashboard after login
+function showDashboard() {
+    document.getElementById("loginSection").style.display = "none";
+    document.getElementById("dashboardSection").style.display = "block";
+    loadProjects();
+    loadTasks();
+}
+
+// load all projects
+function loadProjects() {
+    const token = localStorage.getItem("token");
+    fetch(`${BASE_URL}/api/projects`, {
+        headers: { "Authorization": "Bearer " + token }
+    })
+    .then(res => res.json())
+    .then(projects => {
+        const list = document.getElementById("projectsList");
+        list.innerHTML = projects.map(p => `<p>📁 ${p.name}</p>`).join("");
+    });
+}
+
+// load all tasks
+function loadTasks() {
+    const token = localStorage.getItem("token");
+    fetch(`${BASE_URL}/api/tasks`, {
+        headers: { "Authorization": "Bearer " + token }
+    })
+    .then(res => res.json())
+    .then(tasks => {
+        const list = document.getElementById("tasksList");
+        list.innerHTML = tasks.map(t => `<p>✅ ${t.title} — ${t.status}</p>`).join("");
+    });
+}
+
+// logout
+function logout() {
+    localStorage.removeItem("token");
+    document.getElementById("loginSection").style.display = "block";
+    document.getElementById("dashboardSection").style.display = "none";
+}
 </script>
 
 </body>

@@ -25,5 +25,5 @@ public class AuthController {
         return userService.login(email, password);
 
     }
-    
+
 }
